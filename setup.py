@@ -1,6 +1,7 @@
 import os
 import subprocess
 import sys
+import time
 
 
 def run_command(command, env=None, cwd=None):
@@ -119,6 +120,8 @@ def run_main_script(repo_folder):
 
 if __name__ == "__main__":
     print("Starting setup process...")
+    start_time = time.time()  # Start the timer
+
     try:
         # Clone flux repository and set up dependencies
         clone_flux_repository()
@@ -139,6 +142,11 @@ if __name__ == "__main__":
 
         # Run main script from the flux-fp8-api folder
         run_main_script(flux_folder)
+
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
         sys.exit(1)
+
+    end_time = time.time()  # End the timer
+    duration = end_time - start_time
+    print(f"\nProcess completed in {duration:.2f} seconds.")
