@@ -1,26 +1,49 @@
-version: "3.8"
+name: Publish Docker Image to GHCR
 
-services:
-  flux-setup:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: ghcr.io/miike-ai/flux-fp8-setup:latest
-    ports:
-      - "7860:7860"
-      - "8888:8888"
-    environment:
-      HF_HUB_ENABLE_HF_TRANSFER: "1"
-      HF_HUB_DISABLE_SSL_VERIFY: "1"
-    volumes:
-      - workspace:/workspace
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              capabilities: [gpu]
+on:
+  # Trigger the workflow when pushing to the main branch
+  push:
+    branches:
+      - main
+    paths:
+      - Dockerfile
+      - docker-compose.yml
+      - setup.py
+      - .github/workflows/publish.yml
 
-volumes:
-  workspace:
-    driver: local
+  # Trigger the workflow when creating a pull request to the main branch
+  pull_request:
+    branches:
+      - main
+
+  # Allow manual workflow runs
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    steps:
+      # Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Log in to GHCR
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Build and push Docker image
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/flux-fp8-setup:latest
