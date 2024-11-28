@@ -37,6 +37,7 @@ def download_with_huggingface_cli(repo_id, filename, dest_dir):
     print(f"Downloading {repo_id}/{filename} to {dest_dir} using huggingface-cli...")
     env = os.environ.copy()
     env["HF_HUB_ENABLE_HF_TRANSFER"] = "1"
+    env["HF_HUB_DISABLE_SSL_VERIFY"] = "1"  # Add SSL verification bypass
     run_command(
         ["huggingface-cli", "download", repo_id, filename, "--local-dir", dest_dir],
         env=env,
